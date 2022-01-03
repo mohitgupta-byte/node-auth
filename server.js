@@ -13,7 +13,7 @@ mongoose.connect('mongodb://localhost:27017/user-creation', {
 	useUnifiedTopology: true,
 	useCreateIndex: true
 })
-
+ 
 const app = express()
 app.use('/', express.static(path.join(__dirname, 'static')))
 app.use(bodyParser.json())
@@ -118,6 +118,71 @@ app.post('/api/register', async (req, res) => {
 
 	res.json({ status: 'ok' })
 })
+
+app.post('/api/register/parties', async (req, res) => {
+	const { username, password: plainTextPassword, role,  address , phone , gst , outstand, pin } = req.body
+
+	if (!username || typeof username !== 'string') {
+		return res.json({ status: 'error', error: 'Invalid username' })
+	}
+
+	if (!plainTextPassword || typeof plainTextPassword !== 'string') {
+		return res.json({ status: 'error', error: 'Invalid password' })
+	}
+
+	if (!role || typeof role !== 'string') {
+		return res.json({ status: 'error', error: 'Invalid role' })
+	}
+
+	if (!address || typeof address !== 'string') {
+		return res.json({ status: 'error', error: 'Invalid address' })
+
+	}if (!phone || typeof phone !== 'number') {
+		return res.json({ status: 'error', error: 'Invalid phone' })
+
+	}if (!gst || typeof gst !== 'string') {
+		return res.json({ status: 'error', error: 'Invalid gst' })
+
+	}if (!outstand || typeof outstand !== 'string') {
+		return res.json({ status: 'error', error: 'Invalid outstand' })
+    }
+
+	if (!pin || typeof pin !== 'number') {
+		return res.json({ status: 'error', error: 'Invalid pin' })
+
+	}
+	if (plainTextPassword.length < 5) {
+		return res.json({
+			status: 'error',
+			error: 'Password too small. Should be atleast 6 characters'
+		})
+	}
+
+	const password = await bcrypt.hash(plainTextPassword, 10)
+
+	try {
+		const response = await User.create({
+			username,
+			password,
+			role, 
+			address,
+			phone,
+			gst,
+			outstand,
+			pin
+		})
+		console.log('User created successfully: ', response)
+	} catch (error) {
+		if (error.code === 11000) {
+			// duplicate key
+			return res.json({ status: 'error', error: 'Username already in use' })
+		}
+		throw error
+	}
+
+	res.json({ status: 'ok' })
+})
+
 
 app.listen(9999, () => {
 	console.log('Server up at 9999')

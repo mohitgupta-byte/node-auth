@@ -7,6 +7,10 @@ const partiesSchema = new mongoose.Schema({
         require:true,
         maxlenth:32
     },
+    password:{
+        type:String,
+        require:true,
+    },
     address:{
         type:String,
         require:true,
